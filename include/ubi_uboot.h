@@ -143,6 +143,74 @@ struct ubi_volume *ubi_find_volume(const char *volume);
  */
 int ubi_remove_vol(const char *volume);
 
+/* --- board-port additions (Airoha AN758x web recovery / scripting) --- */
+
+/**
+ * ubi_volume_exists() - check whether a volume is present
+ * @volume: name of the volume to look up
+ *
+ * Return: true if the volume exists on the attached UBI device.
+ */
+bool ubi_volume_exists(const char *volume);
+
+/**
+ * ubi_volume_create() - create a volume with automatic ID assignment
+ * @volume: name of the volume to create
+ * @size: size in bytes, or 0 to use all remaining space
+ * @dynamic: create a dynamic volume if set to true
+ *
+ * Convenience wrapper around ubi_create_vol() using %UBI_VOL_NUM_AUTO and
+ * without the CRC skip flag.
+ *
+ * Return: 0 on success, or -ve on error.
+ */
+int ubi_volume_create(const char *volume, int64_t size, bool dynamic);
+
+/**
+ * ubi_volume_remove() - remove a volume by name
+ * @volume: name of the volume to remove
+ *
+ * Return: 0 on success, or -ve on error.
+ */
+int ubi_volume_remove(const char *volume);
+
+/**
+ * ubi_volume_rename() - rename a volume
+ * @oldname: current volume name
+ * @newname: new volume name
+ *
+ * Return: 0 on success, or -ve on error.
+ */
+int ubi_volume_rename(const char *oldname, const char *newname);
+
+/**
+ * ubi_volume_get_size() - report a volume's used and reserved size
+ * @volume: name of the volume to query
+ * @used_bytes: filled with the used size, or %NULL
+ * @reserved_bytes: filled with the reserved size, or %NULL
+ *
+ * Return: 0 on success, or -ENODEV if UBI is not attached or the volume is
+ * not found.
+ */
+int ubi_volume_get_size(const char *volume, size_t *used_bytes,
+			size_t *reserved_bytes);
+
+/**
+ * ubi_volume_read_quiet() - read data from UBI volume without chatter
+ * @volume: name of the volume to read from
+ * @buf: buffer to hold the read data
+ * @offset: start offset for reading
+ * @size: number of bytes to read
+ *
+ * Same as ubi_volume_read(), kept as a separate entry point for the console
+ * streaming path of the web recovery page, which must not interleave status
+ * messages with the transferred payload.
+ *
+ * Return: 0 on success, or -ve on error.
+ */
+int ubi_volume_read_quiet(const char *volume, void *buf, loff_t offset,
+			  size_t size);
+
 extern struct ubi_device *ubi_devices[];
 int cmd_ubifs_mount(const char *vol_name);
 int cmd_ubifs_umount(void);

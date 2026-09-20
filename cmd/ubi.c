@@ -264,6 +264,50 @@ struct ubi_volume *ubi_find_volume(const char *volume)
 	return NULL;
 }
 
+/*
+ * Board-port volume helpers.
+ *
+ * The web recovery page (net/lwip/httpd.c) manages volumes through this
+ * compact API; these wrap the core UBI entry points above.
+ */
+
+bool ubi_volume_exists(const char *volume)
+{
+	return ubi && !ubi_check(volume);
+}
+
+int ubi_volume_create(const char *volume, int64_t size, bool dynamic)
+{
+	if (!ubi)
+		return ENODEV;
+
+	if (!size)
+		size = (int64_t)ubi->avail_pebs * ubi->leb_size;
+
+	return ubi_create_vol(volume, size, dynamic, UBI_VOL_NUM_AUTO, false);
+}
+
+int ubi_volume_get_size(const char *volume, size_t *used_bytes,
+			size_t *reserved_bytes)
+{
+	struct ubi_volume *vol;
+
+	if (!ubi)
+		return ENODEV;
+
+	vol = ubi_find_volume(volume);
+	if (!vol)
+		return ENODEV;
+
+	if (used_bytes)
+		*used_bytes = vol->used_bytes;
+	if (reserved_bytes)
+		*reserved_bytes = vol->reserved_pebs *
+			(ubi->leb_size - vol->data_pad);
+
+	return 0;
+}
+
 static struct ubi_volume *ubi_require_volume(const char *volume)
 {
 	struct ubi_volume *vol = ubi_find_volume(volume);
@@ -330,6 +374,14 @@ int ubi_remove_vol(const char *volume)
 	return __ubi_remove_vol(vol);
 }
 
+int ubi_volume_remove(const char *volume)
+{
+	if (!ubi)
+		return ENODEV;
+
+	return ubi_remove_vol(volume);
+}
+
 static int ubi_rename_vol(const char *oldname, const char *newname)
 {
 	struct ubi_volume *vol;
@@ -362,6 +414,14 @@ static int ubi_rename_vol(const char *oldname, const char *newname)
 	list_add(&rename.list, &list);
 
 	return ubi_rename_volumes(ubi, &list);
+}
+
+int ubi_volume_rename(const char *oldname, const char *newname)
+{
+	if (!ubi)
+		return ENODEV;
+
+	return ubi_rename_vol(oldname, newname);
 }
 
 static int ubi_volume_continue_write(const char *volume, const void *buf,
@@ -535,6 +595,15 @@ static int __ubi_volume_read(struct ubi_volume *vol, void *buf, loff_t offset,
 	if (offp == vol->used_bytes)
 		return 0;
 
+	/*
+	 * Reject out-of-range requests: the web recovery page derives
+	 * these values from a request, and a negative remaining size
+	 * would wrap around below.
+	 */
+	if (offp < 0 || offp > vol->used_bytes ||
+	    size > vol->used_bytes - offp)
+		return -EINVAL;
+
 	if (size == 0)
 		size = vol->used_bytes;
 
@@ -599,6 +668,18 @@ int ubi_volume_read(const char *volume, void *buf, loff_t offset, size_t size)
 		return -ENODEV;
 
 	return __ubi_volume_read(vol, buf, offset, size);
+}
+
+/*
+ * The web recovery page streams a volume over the console, so the read path
+ * must not interleave status messages with the payload. The shared read
+ * implementation is already silent on success, so this remains a thin,
+ * explicitly named entry point for that call site.
+ */
+int ubi_volume_read_quiet(const char *volume, void *buf, loff_t offset,
+			  size_t size)
+{
+	return ubi_volume_read(volume, buf, offset, size);
 }
 
 static int ubi_dev_scan(const struct mtd_info *info,
