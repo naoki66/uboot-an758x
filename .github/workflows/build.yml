@@ -19,13 +19,17 @@ jobs:
           - hg5585f-ct
           - hg5585f-cu
           - xg2010g
+          - xg2010g-2g
           - xr1710g
           - zn504xg-d
           - zn515xg-d
           - ung00a
           - xg-040g-md
+          - xg-040g-md-1g
           - xg-040g-tf
+          - xg-040g-tf-1g
           - xg-040g-mf
+          - xg-040g-mf-1g
           - hm2004-du
 
     steps:

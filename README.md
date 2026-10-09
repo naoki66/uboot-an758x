@@ -17,13 +17,17 @@ Hold Reset about one second after power-on to enter Web recovery.
 | `hg5585f-cu` | FiberHome HG5585F CU | AN7581 | Parallel NAND |
 | `hm2004-du` | H3C HM2004-DU | AN7581 | SPI NAND |
 | `xg2010g` | Gemtek XG2010G | AN7581 | SPI NAND |
+| `xg2010g-2g` | Gemtek XG2010G (2 GiB) | AN7581 | SPI NAND |
 | `xr1710g` | Gemtek XR1710G | AN7581 | SPI NAND |
 | `zn504xg-d` | ZNXT ZN504XG-D | AN7581 | SPI NAND |
 | `zn515xg-d` | ZNXT ZN515XG-D | AN7581 | SPI NAND |
 | `ung00a` | UnionMan UNG00A | AN7581 | SPI NAND |
 | `xg-040g-md` | Nokia XG-040G-MD | AN7581 | SPI NAND |
+| `xg-040g-md-1g` | Nokia XG-040G-MD (1 GiB) | AN7581 | SPI NAND |
 | `xg-040g-tf` | Nokia XG-040G-TF | AN7581 | SPI NAND |
+| `xg-040g-tf-1g` | Nokia XG-040G-TF (1 GiB) | AN7581 | SPI NAND |
 | `xg-040g-mf` | Nokia XG-040G-MF | AN7583 | SPI NAND |
+| `xg-040g-mf-1g` | Nokia XG-040G-MF (1 GiB) | AN7583 | SPI NAND |
 
 ## Build / 构建
 
