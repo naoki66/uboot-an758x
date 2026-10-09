@@ -51,14 +51,14 @@ footer{text-align:center;padding:12px 0 4px}footer a{color:var(--blue)}
 <div class="step" id="bl2Step">
 <div class="panel"><div class="head"><span class="badge">2</span><h2 data-t="bl2Title">Flash BL2</h2></div>
 <label for="preloader">preloader.bin / firstblock.bin</label>
-<div class="row"><input id="preloader" type="file" accept=".bin"><button id="bl2Button" data-t="uploadWrite">Upload and write</button></div>
+<div class="row"><input id="preloader" type="file" accept=".bin"><button id="bl2Button" class="primary" data-t="uploadWrite">Upload and write</button></div>
 <p class="hint" data-t="bl2Hint"></p>
 </div>
 </div>
 <div class="step" id="ubootStep">
 <div class="panel"><div class="head"><span class="badge">3</span><h2 data-t="ubootTitle">Flash U-Boot</h2></div>
 <label for="uboot">bl31-uboot.fip</label>
-<div class="row"><input id="uboot" type="file" accept=".fip,.bin"><button id="ubootButton" data-t="uploadWrite">Upload and write</button></div>
+<div class="row"><input id="uboot" type="file" accept=".fip,.bin"><button id="ubootButton" class="primary" data-t="uploadWrite">Upload and write</button></div>
 <p class="hint" data-t="ubootHint"></p>
 </div>
 </div>
@@ -93,11 +93,11 @@ footer{text-align:center;padding:12px 0 4px}footer a{color:var(--blue)}
 <h3 data-t="ramBoot">RAM boot</h3>
 <div class="row"><input id="initramfs" type="file"><button id="bootButton" data-t="uploadBoot">Upload and boot</button></div>
 <details><summary data-t="partitionWrite">Write partition</summary>
-<div class="stack"><select id="writeTarget" class="wide"></select><input id="partitionImage" type="file"><button id="writeButton" class="danger" data-t="uploadWrite">Upload and write</button></div>
+<div class="stack"><select id="writeTarget" class="wide"></select><input id="partitionImage" type="file"><button id="writeButton" class="primary" data-t="uploadWrite">Upload and write</button></div>
 </details>
 <details><summary data-t="restoreAll">Restore entire Flash</summary>
 <p class="muted" data-t="restoreAllHint">Restores a main-area .bin from offset 0, including bootloader and board data. Bad-block offsets stay in place; OOB is not included. The file must fit in Flash.</p>
-<div class="row"><input id="allFlashImage" type="file" accept=".bin"><button id="allFlashButton" class="danger" data-t="uploadWrite">Upload and write</button></div>
+<div class="row"><input id="allFlashImage" type="file" accept=".bin"><button id="allFlashButton" class="primary" data-t="uploadWrite">Upload and write</button></div>
 </details>
 <details><summary data-t="clearBadBlocks">Clear bad block markers</summary>
 <p class="muted" data-t="clearBadBlocksHint">Erases the entire NAND chip including factory bad blocks. All data will be lost.</p>
@@ -157,7 +157,7 @@ function boardData(items){
   const label=document.createElement('label');label.textContent=item.target+' · '+item.kind.toUpperCase()+' · '+bytes(item.size);
   const row=document.createElement('div');row.className='row';
   const input=document.createElement('input');input.type='file';input.accept='.bin';
-  const button=document.createElement('button');button.dataset.t='uploadWrite';button.textContent=t('uploadWrite');
+  const button=document.createElement('button');button.className='primary';button.dataset.t='uploadWrite';button.textContent=t('uploadWrite');
   button.onclick=()=>run(async()=>{
    await task({operation:'flash-board-data',target:item.target,upload_id:await uploadFile(input)});
   });
