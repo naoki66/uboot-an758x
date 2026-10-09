@@ -148,7 +148,7 @@ jobs:
 
           echo "::notice::Publishing release '$tag' (prerelease=$prerelease)."
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           pattern: an758x-*
           path: release
