@@ -4,21 +4,30 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>U-Boot</title>
 <style>
-:root{color-scheme:light;--blue:#1769aa;--line:#dbe1e8;--muted:#627083}
+:root{color-scheme:light;--blue:#1769aa;--red:#c62828;--line:#dbe1e8;--muted:#627083}
 *{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:#202a36;font:15px system-ui,sans-serif}
-main{max-width:960px;margin:auto;padding:28px 20px}header,.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}header{justify-content:space-between}
+main{max-width:1080px;margin:auto;padding:28px 20px}header,.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}header{justify-content:space-between}
 h1{font-size:26px;margin:0}h2{font-size:20px;margin:0 0 18px}h3{font-size:16px;margin:0 0 12px}
-.info{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:22px 0;padding:20px;background:white;border:1px solid var(--line);border-radius:10px}
+.info{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin:22px 0;padding:20px;background:white;border:1px solid var(--line);border-radius:10px}
 .info span{display:block;color:var(--muted);margin-bottom:6px}.info strong{overflow-wrap:anywhere;font-size:16px}
 nav{display:flex;gap:8px;margin:20px 0}button{border:1px solid var(--line);border-radius:7px;background:white;color:inherit;font:inherit;padding:9px 15px;cursor:pointer}
 button.primary,nav button.active{background:var(--blue);border-color:var(--blue);color:white}button.danger{border-color:#b42318;color:#b42318}
 button:disabled,input:disabled,select:disabled{opacity:.5;cursor:default}.panel,.status{background:white;border:1px solid var(--line);border-radius:10px;padding:22px;margin-bottom:16px}
+.step{margin-bottom:16px}.step .panel{margin:0}
+.head{display:flex;align-items:center;gap:12px;margin-bottom:16px}.head h2,.head h3{margin:0}
+.badge{width:34px;height:34px;border-radius:50%;background:var(--blue);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex:none}
+.badge.danger{background:var(--red)}
+.hint{margin:14px 0 0;font-size:13.5px;line-height:1.7;color:var(--muted)}
+.hint.warn{background:#fff7df;border:1px solid #e6c86e;color:#6d5400;border-radius:9px;padding:12px 14px}
+.notice{background:#fdecec;border:1px solid #e8a1a1;border-radius:10px;padding:16px 20px;color:#8f1d1d;margin-top:22px;font-size:14.5px;line-height:1.65}
+.notice strong{display:block;font-size:16px;margin-bottom:4px}.notice ol{margin:6px 0 0;padding-left:20px}
 input,select{font:inherit;padding:10px;border:1px solid #aeb9c7;border-radius:6px;max-width:100%;background:white;min-width:0}input[type=file]{flex:1}
 label{display:block;margin-bottom:8px}.wide{width:100%}.stack{display:grid;gap:16px}.muted{color:var(--muted)}.actions{margin-top:18px}
 progress{width:100%;height:14px;accent-color:var(--blue)}#output{white-space:pre-wrap;word-break:break-word;max-height:280px;overflow:auto;font:13px/1.5 ui-monospace,monospace;margin:14px 0 0}
 #state{font-weight:600}#transfer{font-variant-numeric:tabular-nums;color:var(--muted)}.status .row{justify-content:space-between}
 details{border-top:1px solid var(--line);padding-top:18px;margin-top:18px}summary{cursor:pointer;font-weight:600;margin-bottom:16px}
-hr{border:0;border-top:1px solid var(--line);margin:26px 0}[hidden]{display:none!important}@media(max-width:650px){.info{grid-template-columns:1fr 1fr}.row input{width:100%}main{padding:18px 12px}}
+hr{border:0;border-top:1px solid var(--line);margin:26px 0}[hidden]{display:none!important}
+@media(max-width:960px){.info{grid-template-columns:1fr 1fr}.row input{width:100%}main{padding:18px 12px}}
 footer{text-align:center;padding:12px 0 4px}footer a{color:var(--blue)}
 </style>
 </head>
@@ -28,33 +37,50 @@ footer{text-align:center;padding:12px 0 4px}footer a{color:var(--blue)}
 <div><span data-t="model">Model</span><strong id="model">—</strong></div>
 <div><span>RAM / Flash</span><strong id="memory">—</strong></div>
 <div><span data-t="version">Version</span><strong id="version">—</strong></div>
+<div><span data-t="address">Address</span><strong id="address">—</strong></div>
 </div>
 <nav><button data-tab="flash" class="active" data-t="flash">Flash</button><button data-tab="backup" data-t="backup">Backup</button><button data-tab="advanced" data-t="advanced">Advanced</button></nav>
-<section class="panel" id="flash">
-<div id="bl2Section">
-<h2 data-t="bl2Title">Flash BL2</h2>
-<label for="preloader">preloader.bin / firstblock.bin</label>
-<div class="row"><input id="preloader" type="file" accept=".bin"><button id="bl2Button" data-t="uploadWrite">Upload and write</button></div>
-</div>
-<hr id="bootDivider">
-<div id="ubiSection">
-<h2 data-t="ubiOperations">UBI operations</h2>
-<div id="ubiManagement">
+<section id="flash">
+<div class="step" id="rebuildStep">
+<div class="panel"><div class="head"><span class="badge danger">1</span><h2 data-t="ubiOperations">UBI operations</h2></div>
 <p data-t="firstInstall">For the first installation, rebuild UBI first. Rebuilding erases all data in UBI.</p>
 <button id="rebuildButton" class="danger" data-t="rebuild">Rebuild UBI</button>
+<p class="hint warn" data-t="rebuildWarn"></p>
 </div>
-<div id="boardDataSection">
-<h3 class="actions" data-t="boardData">Board data</h3>
-<div id="boardDataList" class="stack"></div>
 </div>
-<h3 class="actions" data-t="ubootTitle">Flash U-Boot</h3>
+<div class="step" id="bl2Step">
+<div class="panel"><div class="head"><span class="badge">2</span><h2 data-t="bl2Title">Flash BL2</h2></div>
+<label for="preloader">preloader.bin / firstblock.bin</label>
+<div class="row"><input id="preloader" type="file" accept=".bin"><button id="bl2Button" data-t="uploadWrite">Upload and write</button></div>
+<p class="hint" data-t="bl2Hint"></p>
+</div>
+</div>
+<div class="step" id="ubootStep">
+<div class="panel"><div class="head"><span class="badge">3</span><h2 data-t="ubootTitle">Flash U-Boot</h2></div>
 <label for="uboot">bl31-uboot.fip</label>
 <div class="row"><input id="uboot" type="file" accept=".fip,.bin"><button id="ubootButton" data-t="uploadWrite">Upload and write</button></div>
-<h3 class="actions" data-t="install">Install system</h3>
+<p class="hint" data-t="ubootHint"></p>
+</div>
+</div>
+<div class="step" id="firmwareStep">
+<div class="panel"><div class="head"><span class="badge">4</span><h2 data-t="install">Install system</h2></div>
 <label for="firmware">sysupgrade.bin / sysupgrade.itb</label>
 <div class="row"><input id="firmware" type="file" accept=".bin,.itb"><button id="flashButton" class="primary" data-t="uploadFlash">Upload and flash</button></div>
-<div class="row actions"><button data-action="boot-production" data-t="bootSystem">Boot system</button><button data-action="reset" data-t="reboot">Reboot</button></div>
+<p class="hint" id="firmwareHint"></p>
 </div>
+</div>
+<div class="step" id="boardDataStep">
+<div class="panel"><div class="head"><span class="badge">5</span><h3 data-t="boardData">Board data</h3></div>
+<div id="boardDataList" class="stack"></div>
+<p class="hint" data-t="boardDataHint"></p>
+</div>
+</div>
+<div class="step" id="bootStep">
+<div class="panel"><div class="head"><span class="badge">6</span><h3 data-t="bootReboot">Boot system / Reboot</h3></div><div class="row"><button data-action="boot-production" data-t="bootSystem">Boot system</button><button data-action="reset" data-t="reboot">Reboot</button></div>
+<p class="hint" data-t="bootHint"></p>
+</div>
+</div>
+<div class="notice" id="notice" hidden><strong data-t="noticeTitle"></strong><ol><li data-t="notice1"></li><li data-t="notice2"></li><li data-t="notice3"></li></ol></div>
 </section>
 <section class="panel" id="backup" hidden>
 <h2 data-t="backup">Backup</h2>
@@ -91,14 +117,17 @@ footer{text-align:center;padding:12px 0 4px}footer a{color:var(--blue)}
 <script>
 'use strict';
 const words={
-zh:{bl2Title:'刷写 BL2',ubiOperations:'UBI 操作',firstInstall:'首次刷机需要先重建 UBI。重建会清空其中的全部数据。',boardData:'板级数据',ubootTitle:'刷写 U-Boot',model:'机型',version:'版本',flash:'刷机',backup:'备份',advanced:'高级',install:'刷写系统',uploadFlash:'上传并刷写',bootSystem:'启动系统',reboot:'重启',target:'目标',download:'下载备份',ramBoot:'内存启动',uploadBoot:'上传并启动',rebuild:'重建 UBI',partitionWrite:'分区写入',restoreAll:'恢复整片 Flash',restoreAllHint:'从 Flash 开头恢复主数据 .bin，包含引导程序和板级数据。坏块保留原偏移，不包含 OOB。文件不能超过 Flash 容量。',flashTooLarge:'文件超过 Flash 容量',clearBadBlocks:'清除坏块标记',clearBadBlocksHint:'擦除整片 NAND 闪存，包括出厂标记的坏块。所有数据将丢失。',scrubConfirm1:'此操作将清除所有坏块标记并擦除全部数据！\n\n点击"确定"后，请在 5 秒内再次点击按钮以确认。',scrubConfirm2:'再次点击以执行清除坏块操作！',uploadWrite:'上传并写入',environment:'环境变量',save:'保存',console:'命令控制台',execute:'执行',serial:'返回串口',cancel:'取消传输',idle:'就绪',upload:'上传中',downloadPhase:'下载中',queued:'等待执行',working:'正在处理',done:'完成',error:'操作失败',erase:'擦除中',create:'创建卷',ready:'上传完成','backup-ready':'备份已就绪',verify:'校验中',write:'写入中',waiting:'等待设备响应',busy:'设备正在处理其他操作',choose:'请选择文件',failed:'请求失败',cancelled:'传输已取消',whole:'整片 Flash',mtdHint:'MTD 备份为物理主数据，坏块填充 FF；NAND OOB 不包含在文件中。',volumeHint:'UBI 卷数据',taskChanged:'设备任务已变化，请刷新页面',network:'连接中断，请检查设备状态'},
-en:{bl2Title:'Flash BL2',ubiOperations:'UBI operations',firstInstall:'For the first installation, rebuild UBI first. Rebuilding erases all data in UBI.',boardData:'Board data',ubootTitle:'Flash U-Boot',model:'Model',version:'Version',flash:'Flash',backup:'Backup',advanced:'Advanced',install:'Install system',uploadFlash:'Upload and flash',bootSystem:'Boot system',reboot:'Reboot',target:'Target',download:'Download backup',ramBoot:'RAM boot',uploadBoot:'Upload and boot',rebuild:'Rebuild UBI',partitionWrite:'Write partition',restoreAll:'Restore entire Flash',restoreAllHint:'Restores a main-area .bin from offset 0, including bootloader and board data. Bad-block offsets stay in place; OOB is not included. The file must fit in Flash.',flashTooLarge:'File exceeds Flash capacity',clearBadBlocks:'Clear bad block markers',clearBadBlocksHint:'Erases the entire NAND chip including factory bad blocks. All data will be lost.',scrubConfirm1:'This will clear all bad block markers and erase all data!\n\nClick OK, then click the button again within 5 seconds to confirm.',scrubConfirm2:'Click again to execute scrub!',uploadWrite:'Upload and write',environment:'Environment',save:'Save',console:'Command console',execute:'Run',serial:'Return to serial',cancel:'Cancel transfer',idle:'Ready',upload:'Uploading',downloadPhase:'Downloading',queued:'Queued',working:'Working',done:'Complete',error:'Operation failed',erase:'Erasing',create:'Creating volumes',ready:'Upload complete','backup-ready':'Backup ready',verify:'Verifying',write:'Writing',waiting:'Waiting for device',busy:'Device is busy',choose:'Select a file',failed:'Request failed',cancelled:'Transfer cancelled',whole:'Entire Flash',mtdHint:'MTD backup contains physical main-area data with bad blocks padded with FF. NAND OOB is excluded.',volumeHint:'UBI volume data',taskChanged:'Device task changed; refresh the page',network:'Connection lost; check device status'}
+zh:{bl2Title:'刷写 BL2',ubiOperations:'UBI 操作',firstInstall:'首次刷机需要先重建 UBI。重建会清空其中的全部数据。',boardData:'板级数据',ubootTitle:'刷写 U-Boot',model:'机型',version:'版本',address:'地址',flash:'刷机',backup:'备份',advanced:'高级',install:'刷写系统',uploadFlash:'上传并刷写',bootSystem:'启动系统',reboot:'重启',bootReboot:'启动系统 / 重启',target:'目标',download:'下载备份',ramBoot:'内存启动',uploadBoot:'上传并启动',rebuild:'重建 UBI',rebuildWarn:'注意：重建 UBI 会清空全部 UBI 数据，相当于格式化硬盘！请务必先在【备份】页面完成所有备份（尤其是 factory、配置等重要数据），确认备份无误后再执行此步骤。',bl2Hint:'选择 ubi-preloader.bin（或 firstblock.bin），然后上传并写入。',ubootHint:'选择 ubi-bl31-uboot.fip，然后上传并写入。',firmwareHint:'选择 {model} 的 sysupgrade.itb（如 immortalwrt-…-sysupgrade.itb），然后上传并刷写。',boardDataHint:'选择备份好的 factory 镜像，然后上传并写入。（此步骤用于恢复板级数据）',bootHint:'刷写完成后，点击【启动系统】或【重启】。',noticeTitle:'重要提醒：备份在先，再重建 UBI！',notice1:'在 Web Recovery 的【备份】页面，先备份 factory、配置等重要数据，并下载保存到电脑。',notice2:'第一步「重建 UBI」会清空所有 UBI 分区数据，相当于格式化硬盘，数据无法恢复。',notice3:'确认已完成备份后，再按 1 → 2 → 3 → 4 → 5 → 6 的顺序刷写。',partitionWrite:'分区写入',restoreAll:'恢复整片 Flash',restoreAllHint:'从 Flash 开头恢复主数据 .bin，包含引导程序和板级数据。坏块保留原偏移，不包含 OOB。文件不能超过 Flash 容量。',flashTooLarge:'文件超过 Flash 容量',clearBadBlocks:'清除坏块标记',clearBadBlocksHint:'擦除整片 NAND 闪存，包括出厂标记的坏块。所有数据将丢失。',scrubConfirm1:'此操作将清除所有坏块标记并擦除全部数据！\n\n点击"确定"后，请在 5 秒内再次点击按钮以确认。',scrubConfirm2:'再次点击以执行清除坏块操作！',uploadWrite:'上传并写入',environment:'环境变量',save:'保存',console:'命令控制台',execute:'执行',serial:'返回串口',cancel:'取消传输',idle:'就绪',upload:'上传中',downloadPhase:'下载中',queued:'等待执行',working:'正在处理',done:'完成',error:'操作失败',erase:'擦除中',create:'创建卷',ready:'上传完成','backup-ready':'备份已就绪',verify:'校验中',write:'写入中',waiting:'等待设备响应',busy:'设备正在处理其他操作',choose:'请选择文件',failed:'请求失败',cancelled:'传输已取消',whole:'整片 Flash',mtdHint:'MTD 备份为物理主数据，坏块填充 FF；NAND OOB 不包含在文件中。',volumeHint:'UBI 卷数据',taskChanged:'设备任务已变化，请刷新页面',network:'连接中断，请检查设备状态'},
+en:{bl2Title:'Flash BL2',ubiOperations:'UBI operations',firstInstall:'For the first installation, rebuild UBI first. Rebuilding erases all data in UBI.',boardData:'Board data',ubootTitle:'Flash U-Boot',model:'Model',version:'Version',address:'Address',flash:'Flash',backup:'Backup',advanced:'Advanced',install:'Install system',uploadFlash:'Upload and flash',bootSystem:'Boot system',reboot:'Reboot',bootReboot:'Boot system / Reboot',target:'Target',download:'Download backup',ramBoot:'RAM boot',uploadBoot:'Upload and boot',rebuild:'Rebuild UBI',rebuildWarn:'Warning: rebuilding UBI erases all UBI data — it is effectively a format! Back up everything (especially factory and configuration data) on the Backup page first and verify your backups before continuing.',bl2Hint:'Select ubi-preloader.bin (or firstblock.bin), then upload and write.',ubootHint:'Select ubi-bl31-uboot.fip, then upload and write.',firmwareHint:'Select the {model} sysupgrade.itb (e.g. immortalwrt-…-sysupgrade.itb), then upload and flash.',boardDataHint:'Select a backed-up factory image, then upload and write. (This step restores board data.)',bootHint:'After flashing, click Boot system or Reboot.',noticeTitle:'Important: back up first, then rebuild UBI!',notice1:'On the Backup page of Web Recovery, back up factory and configuration data first and save the files to your computer.',notice2:'Step 1 "Rebuild UBI" erases all UBI volume data — it is effectively a format and data cannot be recovered.',notice3:'After confirming your backups, flash in the order 1 → 2 → 3 → 4 → 5 → 6.',partitionWrite:'Write partition',restoreAll:'Restore entire Flash',restoreAllHint:'Restores a main-area .bin from offset 0, including bootloader and board data. Bad-block offsets stay in place; OOB is not included. The file must fit in Flash.',flashTooLarge:'File exceeds Flash capacity',clearBadBlocks:'Clear bad block markers',clearBadBlocksHint:'Erases the entire NAND chip including factory bad blocks. All data will be lost.',scrubConfirm1:'This will clear all bad block markers and erase all data!\n\nClick OK, then click the button again within 5 seconds to confirm.',scrubConfirm2:'Click again to execute scrub!',uploadWrite:'Upload and write',environment:'Environment',save:'Save',console:'Command console',execute:'Run',serial:'Return to serial',cancel:'Cancel transfer',idle:'Ready',upload:'Uploading',downloadPhase:'Downloading',queued:'Queued',working:'Working',done:'Complete',error:'Operation failed',erase:'Erasing',create:'Creating volumes',ready:'Upload complete','backup-ready':'Backup ready',verify:'Verifying',write:'Writing',waiting:'Waiting for device',busy:'Device is busy',choose:'Select a file',failed:'Request failed',cancelled:'Transfer cancelled',whole:'Entire Flash',mtdHint:'MTD backup contains physical main-area data with bad blocks padded with FF. NAND OOB is excluded.',volumeHint:'UBI volume data',taskChanged:'Device task changed; refresh the page',network:'Connection lost; check device status'}
 };
-let language=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en', localBusy=false, remoteBusy=true, activeXHR=null, targets=[], flashBytes=0, selectedTab='flash', rebooting=false;
+let language=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en', localBusy=false, remoteBusy=true, activeXHR=null, targets=[], flashBytes=0, selectedTab='flash', rebooting=false, model='—';
 const el=id=>document.getElementById(id), t=key=>words[language][key]||key, text=(id,value)=>{el(id).textContent=value};
+function fwHint(){return t('firmwareHint').replace('{model}',model)}
+function updateFwHint(){text('firmwareHint',fwHint())}
 function applyLanguage(){
  document.documentElement.lang=language==='zh'?'zh-CN':'en';
  document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));
+ updateFwHint();
  text('language',language==='zh'?'English':'简体中文');catalog();
 }
 function bytes(n){return n>=1048576?(n/1048576).toFixed(1)+' MiB':n>=1024?(n/1024).toFixed(1)+' KiB':n+' B'}
@@ -143,12 +172,17 @@ async function request(url,options){
 }
 async function refresh(){
  const [d,s]=await Promise.all([request('/api/device'),request('/api/storage')]);targets=s.targets||[];
- text('model',d.model);text('memory',bytes(d.ram_bytes)+' / '+bytes(d.flash_bytes));text('version',d.version);
+ model=d.model;text('model',d.model);text('memory',bytes(d.ram_bytes)+' / '+bytes(d.flash_bytes));text('version',d.version);text('address',location.host||'—');updateFwHint();
  flashBytes=d.flash_bytes;
  const hasBl2=targets.some(v=>v.kind==='mtd'&&v.name==='bl2');
- el('bl2Section').hidden=!hasBl2;el('ubiSection').hidden=!d.ubi;
- el('bootDivider').hidden=!(hasBl2&&d.ubi);el('ubiManagement').hidden=!d.rebuild;
- el('boardDataSection').hidden=!d.board_data.length;boardData(d.board_data);
+ el('rebuildStep').hidden=!(d.ubi&&d.rebuild);
+ el('bl2Step').hidden=!hasBl2;
+ el('ubootStep').hidden=!d.ubi;
+ el('firmwareStep').hidden=!d.ubi;
+ el('bootStep').hidden=!d.ubi;
+ el('boardDataStep').hidden=!(d.ubi&&d.board_data.length);
+ el('notice').hidden=!(d.ubi&&d.rebuild);
+ boardData(d.board_data);
  document.querySelector('[data-tab="flash"]').hidden=!(hasBl2||d.ubi);
  if(!hasBl2&&!d.ubi&&selectedTab==='flash')tab('backup');catalog();
 }
