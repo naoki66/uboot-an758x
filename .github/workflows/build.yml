@@ -4,6 +4,22 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: >-
+          Release tag to publish, e.g. v2026.10-1. Required when "release" is
+          set to "release" or "prerelease"; ignored when it is "no".
+        required: false
+        type: string
+      release:
+        description: 'Publish a GitHub Release after a successful build?'
+        required: true
+        default: 'no'
+        type: choice
+        options:
+          - 'no'
+          - 'release'
+          - 'prerelease'
 
 permissions:
   contents: read
@@ -65,22 +81,102 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: startsWith(github.ref, 'refs/tags/')
+    # Two ways in:
+    #   * a tag was pushed      -> release automatically, tag = the pushed ref
+    #   * manual dispatch       -> only when the "release" input is not "no",
+    #                              tag = the "tag" input
+    if: >-
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.release != 'no')
     needs: build
     runs-on: ubuntu-24.04
     permissions:
       contents: write
 
     steps:
+      - name: Resolve release parameters
+        id: params
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_RELEASE: ${{ inputs.release }}
+          REF_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            # Manual run: tag and release type both come from the inputs.
+            tag="$INPUT_TAG"
+            mode="$INPUT_RELEASE"
+          else
+            # A tag was pushed; the ref itself is the release tag. A tag with a
+            # prerelease suffix is published as a prerelease so it cannot take
+            # over the repository's "Latest" release. Delete this case block if
+            # every pushed tag should be a stable release.
+            tag="$REF_TAG"
+            case "$tag" in
+              *-rc*|*-alpha*|*-beta*|*-pre*|*-dev*) mode="prerelease" ;;
+              *)                                    mode="release" ;;
+            esac
+          fi
+
+          if [ -z "$tag" ]; then
+            echo "::error::The 'tag' input must not be empty when releasing (release='$mode')."
+            exit 1
+          fi
+
+          case "$mode" in
+            release)
+              prerelease=false
+              latest=true
+              ;;
+            prerelease)
+              prerelease=true
+              latest=false
+              ;;
+            *)
+              echo "::error::Unsupported release type '$mode' (expected 'release' or 'prerelease')."
+              exit 1
+              ;;
+          esac
+
+          {
+            echo "tag=$tag"
+            echo "prerelease=$prerelease"
+            echo "latest=$latest"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "::notice::Publishing release '$tag' (prerelease=$prerelease)."
+
       - uses: actions/download-artifact@v4
         with:
           pattern: an758x-*
           path: release
           merge-multiple: true
 
-      - name: Create release
+      - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create "$GITHUB_REF_NAME" release/* --generate-notes
-          --repo "$GITHUB_REPOSITORY"
+          TAG: ${{ steps.params.outputs.tag }}
+          PRERELEASE: ${{ steps.params.outputs.prerelease }}
+          LATEST: ${{ steps.params.outputs.latest }}
+          REPO: ${{ github.repository }}
+          TARGET: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            echo "Release '$TAG' already exists -- refreshing flags and assets."
+            gh release edit "$TAG" \
+              --prerelease="$PRERELEASE" \
+              --latest="$LATEST" \
+              --repo "$REPO"
+            gh release upload "$TAG" release/* --clobber --repo "$REPO"
+          else
+            gh release create "$TAG" release/* \
+              --target "$TARGET" \
+              --generate-notes \
+              --prerelease="$PRERELEASE" \
+              --latest="$LATEST" \
+              --repo "$REPO"
+          fi
