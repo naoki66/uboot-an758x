@@ -5,7 +5,7 @@ set -eu
 usage()
 {
 	cat >&2 <<'EOF'
-usage: build-an758x.sh <hg5382a|hg5585f-ct|hg5585f-cu|hm2004-du|xg2010g|xr1710g|zn504xg-d|zn515xg-d|ung00a|xg-040g-md|xg-040g-tf|xg-040g-mf>
+usage: build-an758x.sh <hg5382a|hg5585f-ct|hg5585f-cu|hm2004-du|xg2010g|xg2010g-2g|xr1710g|zn504xg-d|zn515xg-d|ung00a|xg-040g-md|xg-040g-md-1g|xg-040g-tf|xg-040g-tf-1g|xg-040g-mf|xg-040g-mf-1g>
 
 Required environment:
   CROSS_COMPILE         AArch64 toolchain prefix
@@ -72,6 +72,12 @@ xg2010g)
 	soc=EN7581
 	parallel_nand=0
 	;;
+xg2010g-2g)
+	defconfig=an7581_gemtek_xg2010g-2g_defconfig
+	artifact_prefix=an7581-gemtek-xg2010g-2g
+	soc=EN7581
+	parallel_nand=0
+	;;
 xr1710g)
 	defconfig=an7581_gemtek_xr1710g_defconfig
 	artifact_prefix=an7581-gemtek-xr1710g
@@ -102,15 +108,33 @@ xg-040g-md)
 	soc=EN7581
 	parallel_nand=0
 	;;
+xg-040g-md-1g)
+	defconfig=an7581_nokia_xg-040g-md-1g_defconfig
+	artifact_prefix=an7581-nokia-xg-040g-md-1g
+	soc=EN7581
+	parallel_nand=0
+	;;
 xg-040g-tf)
 	defconfig=an7581_nokia_xg-040g-tf_defconfig
 	artifact_prefix=an7581-nokia-xg-040g-tf
 	soc=EN7581
 	parallel_nand=0
 	;;
+xg-040g-tf-1g)
+	defconfig=an7581_nokia_xg-040g-tf-1g_defconfig
+	artifact_prefix=an7581-nokia-xg-040g-tf-1g
+	soc=EN7581
+	parallel_nand=0
+	;;
 xg-040g-mf)
 	defconfig=an7583_nokia_xg-040g-mf_defconfig
 	artifact_prefix=an7583-nokia-xg-040g-mf
+	soc=AN7583
+	parallel_nand=0
+	;;
+xg-040g-mf-1g)
+	defconfig=an7583_nokia_xg-040g-mf-1g_defconfig
+	artifact_prefix=an7583-nokia-xg-040g-mf-1g
 	soc=AN7583
 	parallel_nand=0
 	;;
