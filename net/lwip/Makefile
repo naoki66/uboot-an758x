@@ -5,6 +5,7 @@ obj-$(CONFIG_CMD_DHCP) += dhcp.o
 obj-$(CONFIG_DNS) += dns.o
 obj-$(CONFIG_CMD_HTTPD) += httpd.o
 obj-$(CONFIG_CMD_HTTPD) += httpd_page.o
+obj-$(CONFIG_CMD_HTTPD) += httpd-led.o
 obj-$(CONFIG_HTTPD_DHCP_SERVER) += httpd-dhcp.o
 obj-$(CONFIG_LWIP_ICMP_SHOW_UNREACH) += icmp_unreach.o
 obj-$(CONFIG_CMD_NFS) += nfs.o
