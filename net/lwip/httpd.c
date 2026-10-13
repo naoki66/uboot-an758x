@@ -10,8 +10,8 @@
 #include <dm/device.h>
 #include <dm/ofnode.h>
 #include <env.h>
+#include <httpd-led.h>
 #include <image.h>
-#include <led.h>
 #include <lmb.h>
 #include <mapmem.h>
 #include <mtd.h>
@@ -1278,7 +1278,9 @@ static int run_bootloader_update(bool bl2)
 		goto out;
 	}
 	if (bl2) {
+		uboot_httpd_led_dump_state("pre-bl2");
 		mtd_probe_devices();
+		uboot_httpd_led_dump_state("post-probe");
 		mtd = get_mtd_device_nm("bl2");
 		if (IS_ERR(mtd)) {
 			ret = PTR_ERR(mtd);
@@ -1308,12 +1310,15 @@ static int run_bootloader_update(bool bl2)
 		       buffer_size == length ? "firstblock" : "preloader FIP", buffer_size);
 		phase = "erase";
 		ret = storage_mtd_erase(mtd, 0, length);
+		uboot_httpd_led_dump_state("post-erase");
 		if (ret) goto out;
 		phase = "write";
 		ret = storage_mtd_transfer(mtd, 0, image, length, false);
+		uboot_httpd_led_dump_state("post-write");
 		if (ret) goto out;
 		phase = "verify";
 		ret = storage_mtd_transfer(mtd, 0, verify, length, true);
+		uboot_httpd_led_dump_state("post-verify");
 	} else {
 		if (!CONFIG_IS_ENABLED(CMD_UBI)) { ret = -ENOSYS; goto out; }
 		ret = ubi_part((char *)part, NULL);
@@ -1699,9 +1704,9 @@ static int run_captured_job(void)
 		ret = run_command(command_buf, 0);
 		break;
 	case HTTP_JOB_ACTION:
-		led_activity_on();
+		uboot_httpd_led_job_start();
 		ret = run_action();
-		led_activity_blink();
+		uboot_httpd_led_job_end();
 		break;
 	case HTTP_JOB_FIRMWARE:
 		ret = run_firmware_update();
@@ -1817,8 +1822,8 @@ int uboot_httpd_start(bool with_dhcp)
 	}
 
 	httpd_running = true;
-	/* The cyclic LED timer shares the recovery network polling loop. */
-	led_activity_blink();
+	/* The LED pattern shares the recovery network polling loop. */
+	uboot_httpd_led_start();
 	stop_requested = false;
 	memset(&post_state, 0, sizeof(post_state));
 	job_state = HTTP_JOB_IDLE;
@@ -1862,6 +1867,7 @@ int uboot_httpd_start(bool with_dhcp)
 			phase = "done";
 		}
 		process_job();
+		uboot_httpd_led_poll();
 	}
 
 	http_netif = NULL;
@@ -1870,7 +1876,7 @@ int uboot_httpd_start(bool with_dhcp)
 	net_lwip_remove_netif(netif);
 	net_lwip_eth_stop();
 	httpd_running = false;
-	led_activity_on();
+	uboot_httpd_led_stop();
 	clear_ctrlc();
 	return ret < 0 ? ret : 0;
 }
