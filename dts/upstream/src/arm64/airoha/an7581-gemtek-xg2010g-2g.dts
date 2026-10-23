@@ -11,10 +11,14 @@
 
 / {
 	model = "Gemtek XG2010G (2 GiB)";
-	compatible = "gemtek,xg2010g-2g", "airoha,an7581", "airoha,en7581";
+	compatible = "gemtek,xg2010g-2g", "gemtek,xg2010g-2g-ubi", "airoha,an7581", "airoha,en7581";
 
 	aliases {
 		serial0 = &uart1;
+		led-boot = &led_status_red;
+		led-failsafe = &led_status_blue;
+		led-upgrade = &led_status_blue;
+		led-running = &led_status_green;
 	};
 
 	chosen {
@@ -37,12 +41,42 @@
 		};
 	};
 
+	/*
+	 * Four-colour front status LED. GPIO33/43/44/45 double as LAN LED
+	 * pins, so the HTTP recovery pattern detaches them from the LAN LED
+	 * mux before driving them. Declared in sweep order so the pattern
+	 * runs red -> green -> blue -> white.
+	 */
 	leds {
 		compatible = "gpio-leds";
 
-		led-status-green {
+		led_status_red: led-status-red {
+			label = "red:status";
+			color = <LED_COLOR_ID_RED>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&en7581_pinctrl 43 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+
+		led_status_green: led-status-green {
 			label = "green:status";
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_STATUS;
 			gpios = <&en7581_pinctrl 44 GPIO_ACTIVE_LOW>;
+		};
+
+		led_status_blue: led-status-blue {
+			label = "blue:status";
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&en7581_pinctrl 45 GPIO_ACTIVE_LOW>;
+		};
+
+		led_status_white: led-status-white {
+			label = "white:status";
+			color = <LED_COLOR_ID_WHITE>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&en7581_pinctrl 33 GPIO_ACTIVE_LOW>;
 		};
 	};
 };

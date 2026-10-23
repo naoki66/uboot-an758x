@@ -61,6 +61,19 @@ config PROT_TCP_SACK_LWIP
 config PROT_UDP_LWIP
 	bool
 
+config HTTPD_LED_PATTERN
+	bool "Multi-colour status LED pattern for httpd"
+	depends on CMD_HTTPD
+	help
+	  Drive every status LED declared in the board device tree with a
+	  sweeping highlight modulated by a breathing envelope, so a
+	  multi-colour status LED shows an alternating rainbow pattern while
+	  the HTTP management service runs. With a single status LED the
+	  sweep degenerates into a plain breath, using the SoC flash/LED PWM
+	  mux for that pin when the hardware allows it.
+
+	  Boards that do not enable this keep the plain activity LED blink.
+
 config LWIP_TCP_WND
 	int "Value of TCP_WND"
 	default 32768 if ARCH_QEMU

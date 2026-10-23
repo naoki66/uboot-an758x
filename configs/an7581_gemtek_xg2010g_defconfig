@@ -71,3 +71,6 @@ CONFIG_SYS_NS16550=y
 CONFIG_SPI=y
 CONFIG_DM_SPI=y
 CONFIG_AIROHA_SNFI_SPI=y
+
+# Sweeping multi-colour status LED pattern during HTTP recovery
+CONFIG_HTTPD_LED_PATTERN=y

@@ -3,7 +3,12 @@
 #include "an7581-u-boot.dtsi"
 #include "an758x-recovery-layout-u-boot.dtsi"
 
-status_led: &{/leds/led-status-green} {
+/*
+ * The front status LED is a four-colour assembly; point the boot-time
+ * "status LED is alive" indicator at the red die, matching the vendor
+ * behaviour. The HTTP recovery pattern drives all four.
+ */
+status_led: &{/leds/led-status-red} {
 };
 
 #include "an758x-status-led-u-boot.dtsi"
